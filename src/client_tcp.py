@@ -1,9 +1,9 @@
 import socket
 import logging
 
-SERVER_HOST = '127.0.0.1'
-HOST_PORT = 3000
-DEFAULT_PORT = 4704
+SERVER_HOST = '127.0.0.1'  # Server IP address
+HOST_PORT = 3000  # Port listened by the server
+DEFAULT_PORT = 4704  # Default port to use
 
 
 class ClientTCP:
@@ -26,9 +26,25 @@ class ClientTCP:
         logging.info(f"Connected to the server. Host : {SERVER_HOST}, Port : {HOST_PORT}")
         logging.info(f"Socket port : {self.__s.getsockname()}")
 
+    def send_data_server(self, data):
+        packet_sent = 0
+
+        data = data.encode('utf8')
+        logging.debug(f"Sending packets...\nPackets : {data}")
+
+        while packet_sent < len(data):
+            packet_sent += self.__s.send(data[packet_sent:])
+
+        logging.debug(f"Send completed !")
+
+    @property
+    def port(self):
+        return self.__port
+
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO)
+    logging.basicConfig(level=logging.DEBUG)
 
     client = ClientTCP()
     client.connect_server()
+    client.send_data_server("Hello world")
