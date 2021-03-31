@@ -11,7 +11,7 @@ DEFAULT_PORT = 4704  # Default port to use
 class ClientTCP:
     def __init__(self, port=DEFAULT_PORT):
         # Create the socket instance
-        self.__port = port
+        self.__port = port if port is not None else DEFAULT_PORT
         self.__s_ping = socket.socket()
 
     def connect_server_ping(self):

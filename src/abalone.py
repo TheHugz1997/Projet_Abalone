@@ -10,9 +10,9 @@ MATRICULES = ["195347", "195004"]
 
 
 class Abalone:
-    def __init__(self):
+    def __init__(self, port=None):
         self.__name = ABALONE_NAME
-        self.__client = ClientTCP()
+        self.__client = ClientTCP(port)
 
         # self.__client.connect_server()
         self.__client.connect_server_ping()
@@ -44,7 +44,7 @@ class Abalone:
         try:
             print()
             if response["response"].upper() == "OK":
-                logging.info("Registered to th server")
+                logging.info("Registered to the server")
             else:
                 logging.critical(f"Error while subscribing : {response['error']}")
         except Exception as e:
@@ -59,10 +59,15 @@ class Abalone:
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
 
-    abalone = Abalone()
-    abalone.subscribe_server()
-
-    try:
-        abalone.run()
-    except InterruptedError:
-        exit()
+    if len(sys.argv) > 1:
+        for arg in sys.argv[1:]:
+            abalone = Abalone(int(arg))
+            abalone.subscribe_server()
+            Thread(target=abalone.run)
+        while True:
+            pass
+    else:
+        abalone = Abalone()
+        abalone.subscribe_server()
+        while True:
+            abalone.run()
