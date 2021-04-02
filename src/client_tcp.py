@@ -62,6 +62,10 @@ class ClientTCP:
 
         return response
 
+    def send_answer(self, client, msg):
+        print(f"Message send to client : {msg}")
+        self.__send(client, msg)
+
     def get_subsciption_answer(self):
         msg = ''
         while msg == '':
@@ -72,7 +76,7 @@ class ClientTCP:
     def get_request(self):
         client, addr = self.__s_ping.accept()
         msg = client.recv(1024).decode('utf8')
-        # client.close()
+
         return client, addr, msg
 
     @property

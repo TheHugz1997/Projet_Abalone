@@ -14,7 +14,6 @@ class Abalone:
         self.__name = ABALONE_NAME
         self.__client = ClientTCP(port)
 
-        # self.__client.connect_server()
         self.__client.connect_server_ping()
 
         self.__request_handler = \
@@ -24,13 +23,17 @@ class Abalone:
 
     def run(self):
         while True:
+            print(self.__client.port)
             client, addr, message_json = self.__client.get_request()
-
             logging.info(f"Request received : {message_json}")
             message = json_decode(message_json)
 
             if 'request' in message:
-                self.__request_handler[message['request']](client, message)
+                request = message['request']
+                if request in self.__request_handler.keys():
+                    self.__request_handler[request](client, message)
+                else:
+                    logging.critical(f"Request \"{request}\" unknown...")
             elif 'response' in message:
                 self.__subscribe_response_extract(message)
 
@@ -51,9 +54,9 @@ class Abalone:
             logging.critical(f"Error on subscribing to the server : {e}")
             exit()
 
-    def __confirm(self, *arg, **kwarqgs):
+    def __confirm(self, client, msg_receive):
         msg = json_ping_answer()
-        self.__client.send_to_server(msg)
+        self.__client.send_answer(client, msg)
 
 
 if __name__ == '__main__':
@@ -63,11 +66,12 @@ if __name__ == '__main__':
         for arg in sys.argv[1:]:
             abalone = Abalone(int(arg))
             abalone.subscribe_server()
-            Thread(target=abalone.run)
+            Thread(target=abalone.run, daemon=True).start()
         while True:
             pass
     else:
-        abalone = Abalone()
+        port = sys.argv[1] if len(sys.argv) == 2 else None
+        abalone = Abalone(port)
         abalone.subscribe_server()
         while True:
             abalone.run()
