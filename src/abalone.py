@@ -1,7 +1,7 @@
 import sys
 import logging
 from threading import Thread
-from json_formater import json_decode, json_subscribe, json_ping_answer
+from json_formater import json_decode, json_subscribe, json_ping_answer, json_play_response
 from client_tcp import ClientTCP
 
 
@@ -19,6 +19,7 @@ class Abalone:
         self.__request_handler = \
         {
             'ping': self.__confirm,
+            'play': self.__play
         }
 
     def run(self):
@@ -57,6 +58,10 @@ class Abalone:
     def __confirm(self, client, msg_receive):
         msg = json_ping_answer()
         self.__client.send_answer(client, msg)
+    
+    def __play(self, client, msg_receive):
+        msg = json_play_response()
+        self.__client.send_answer(client, msg)
 
 
 if __name__ == '__main__':
@@ -75,3 +80,4 @@ if __name__ == '__main__':
         abalone.subscribe_server()
         while True:
             abalone.run()
+            

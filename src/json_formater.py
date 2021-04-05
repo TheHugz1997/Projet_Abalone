@@ -21,3 +21,8 @@ def json_ping_answer():
     ping_ans = {"response": "pong"}
 
     return json.dumps(ping_ans, indent=4, separators=(',', ':'))
+
+def json_play_response():
+    response = {"response": "move", "move": "", "message": "Hello server I'm the AI"}
+
+    return json.dumps(response, indent=4, separators=(',', ':'))
