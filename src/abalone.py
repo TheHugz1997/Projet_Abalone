@@ -35,8 +35,10 @@ class Abalone:
                     self.__request_handler[request](client, message)
                 else:
                     logging.critical(f"Request \"{request}\" unknown...")
+            """
             elif 'response' in message:
                 self.__subscribe_response_extract(message)
+            """
 
     def subscribe_server(self):
         """
@@ -60,6 +62,13 @@ class Abalone:
         self.__client.send_answer(client, msg)
     
     def __play(self, client, msg_receive):
+        """
+        Send those informations to the random_AI
+        """
+        AI_lives = msg_receive['lives']
+        print("nombre de vies restantes {}".format(AI_lives))
+        Plate_state = msg_receive['state']
+        print("Etat du plateau est {}".format(Plate_state))
         msg = json_play_response()
         self.__client.send_answer(client, msg)
 
