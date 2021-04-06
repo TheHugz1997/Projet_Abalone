@@ -2,6 +2,8 @@ import json
 
 
 SUBSCRIBE_REQUEST = 'subscribe'
+MOVE_REQUEST = 'move'
+MOVE_MESSAGE = 'Fuck you Bitch'
 
 
 def json_decode(string):
@@ -22,7 +24,14 @@ def json_ping_answer():
 
     return json.dumps(ping_ans, indent=4, separators=(',', ':'))
 
-def json_play_response():
-    response = {"response": "move", "move": "", "message": "Hello server I'm the AI"}
+def json_play_response(marbles, direction):
+    response, move_played = dict(), dict()
+
+    move_played['marbles'] = marbles
+    move_played['direction'] = direction
+
+    response['response'] = MOVE_REQUEST
+    response['move'] = move_played
+    response['message'] = MOVE_MESSAGE
 
     return json.dumps(response, indent=4, separators=(',', ':'))
