@@ -1,6 +1,6 @@
 import sys
 import logging
-from strategy import Strategy, StrategyConfiguration
+from game import Game
 from threading import Thread
 from json_formater import json_decode, json_subscribe, json_ping_answer, json_play_response
 from client_tcp import ClientTCP
@@ -68,8 +68,10 @@ class Abalone:
         """
         AI_lives = msg_receive['lives']
         print("nombre de vies restantes {}".format(AI_lives))
-        Plate_state = msg_receive['state']
+        current_player = msg_receive['state']['current']
+        Plate_state = msg_receive['state']['board']
         print("Etat du plateau est {}".format(Plate_state))
+        c_game = Game(AI_lives, current_player,Plate_state)
         msg = json_play_response([[6, 4]], "NE")
         self.__client.send_answer(client, msg)
 
