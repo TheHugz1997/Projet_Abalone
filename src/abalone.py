@@ -1,5 +1,6 @@
 import sys
 import logging
+from strategy import Strategy, StrategyConfiguration
 from threading import Thread
 from json_formater import json_decode, json_subscribe, json_ping_answer, json_play_response
 from client_tcp import ClientTCP
@@ -10,8 +11,8 @@ MATRICULES = ["195347", "195004"]
 
 
 class Abalone:
-    def __init__(self, port=None):
-        self.__name = ABALONE_NAME
+    def __init__(self, name=ABALONE_NAME, port=None):
+        self.__name = name
         self.__client = ClientTCP(port)
 
         self.__client.connect_server_ping()
@@ -60,7 +61,7 @@ class Abalone:
     def __confirm(self, client, msg_receive):
         msg = json_ping_answer()
         self.__client.send_answer(client, msg)
-    
+
     def __play(self, client, msg_receive):
         """
         Send those informations to the random_AI
@@ -69,7 +70,7 @@ class Abalone:
         print("nombre de vies restantes {}".format(AI_lives))
         Plate_state = msg_receive['state']
         print("Etat du plateau est {}".format(Plate_state))
-        msg = json_play_response()
+        msg = json_play_response([[6, 4]], "NE")
         self.__client.send_answer(client, msg)
 
 
@@ -78,15 +79,15 @@ if __name__ == '__main__':
 
     if len(sys.argv) > 1:
         for arg in sys.argv[1:]:
-            abalone = Abalone(int(arg))
+            name = "{}{}".format(ABALONE_NAME, arg)
+            abalone = Abalone(name, int(arg))
             abalone.subscribe_server()
             Thread(target=abalone.run, daemon=True).start()
         while True:
             pass
     else:
         port = sys.argv[1] if len(sys.argv) == 2 else None
-        abalone = Abalone(port)
+        abalone = Abalone(ABALONE_NAME, port)
         abalone.subscribe_server()
         while True:
             abalone.run()
-            
