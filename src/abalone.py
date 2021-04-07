@@ -66,13 +66,11 @@ class Abalone:
         """
         Send those informations to the random_AI
         """
-        AI_lives = msg_receive['lives']
-        print("nombre de vies restantes {}".format(AI_lives))
-        current_player = msg_receive['state']['current']
-        Plate_state = msg_receive['state']['board']
-        print("Etat du plateau est {}".format(Plate_state))
-        c_game = Game(AI_lives, current_player,Plate_state)
-        msg = json_play_response([[6, 4]], "NE")
+        lives = msg_receive['lives']
+        state = msg_receive['state']
+
+        c_game = Game(lives, state['current'], state['board'])
+        msg = json_play_response(*c_game.get_movement())
         self.__client.send_answer(client, msg)
 
 
