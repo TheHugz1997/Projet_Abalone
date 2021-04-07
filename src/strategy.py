@@ -117,12 +117,17 @@ class Strategy:
 
 		len_marble = len(marble_chain)
 		len_opposite_marble = 0
-		while self.is_opposite_marble(l + dl, l + c):
+
+		# Get the marble opposite chain
+		while self.is_opposite_marble(l + dl, c + dc):
+			l += dl
+			c += dc
 			len_opposite_marble += 1
 			if len_opposite_marble >= MAX_CHAIN_LENGHT:
 				return False
 
-		return len_marble > len_opposite_marble
+		# Check if there's no marble of mine behind of the opposite chain
+		return len_marble > len_opposite_marble and not self.is_my_marble(l + dl, c + dc)
 
 
 	def get_marbles_chain(self, color, l, c, direction):
