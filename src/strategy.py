@@ -32,15 +32,15 @@ opposite = {
 }
 
 board_weight = [
-	[5, 5, 5, 5, 5, None, None, None, None],
-	[5, 20, 20, 20, 20, 5, None, None, None],
-	[5, 20, 30, 30, 30, 20, 5, None, None],
-	[5, 20, 30, 40, 40, 30, 20, 5, None],
-	[5, 20, 30, 40, 50, 40, 30, 20, 5],
-	[None, 5, 20, 30, 40, 40, 30, 20, 5],
-	[None, None, 5, 20, 30, 30, 30, 20, 5],
-	[None, None, None, 5, 20, 20, 20, 20, 5],
-	[None, None, None, None, 5, 5, 5, 5, 5]
+	[1, 1, 1, 1, 1, None, None, None, None],
+	[1, 2, 2, 2, 2, 1, None, None, None],
+	[1, 2, 3, 3, 3, 2, 1, None, None],
+	[1, 2, 3, 4, 4, 3, 2, 1, None],
+	[1, 2, 3, 4, 5, 4, 3, 2, 1],
+	[None, 1, 2, 3, 4, 4, 3, 2, 1],
+	[None, None, 1, 2, 3, 3, 3, 2, 1],
+	[None, None, None, 1, 2, 2, 2, 2, 1],
+	[None, None, None, None, 1, 1, 1, 1, 1]
 ]
 
 
@@ -48,7 +48,7 @@ class StrategyConfiguration:
 	def __init__(self):
 		self.__marbles = []
 		self.__direction = None
-		self.__priority = -1000
+		self.__priority = 0
 
 	@property
 	def marbles(self):
@@ -106,7 +106,7 @@ class Strategy:
 		try:
 			if not -1 < l < BOARD_WIDHT:
 				return False
-			if not -1 < l < BOARD_HEIGHT:
+			if not -1 < c < BOARD_HEIGHT:
 				return False
 			return not self._board[l][c] == 'X'
 		except IndexError:
@@ -124,29 +124,35 @@ class Strategy:
 			c += dc
 			len_opposite_marble += 1
 			if len_opposite_marble >= MAX_CHAIN_LENGHT:
-				return False
+				return None
 
 		# Check if there's no marble of mine behind of the opposite chain
-		return len_marble > len_opposite_marble and not self.is_my_marble(l + dl, c + dc)
+		if len_marble > len_opposite_marble and len_opposite_marble > 0:
+			print("is on board : ", self.is_on_board(l + dl, c + dc))
+			print("board : ", self._board[l + dl][c + dc])
+			print("x : ", l + dl, " y : ", c + dc)
+			if not self.is_on_board(l + dl, c + dc):
+				return 100
+			elif self.is_free(l + dl, c + dc):
+				return 50
+			else:
+				return None
+		return None
 
 
-	def get_marbles_chain(self, color, l, c, direction):
+
+	def get_marbles_chain(self, l, c, direction):
 		back_direction = opposite[direction]
 		dl, dc = directions[back_direction]
 		marbles_chain = []
 
-		if not self.is_on_board(l, c):
-			return []
-
-		while len(marbles_chain) < MAX_CHAIN_LENGHT:
-			color = self._board[l][c]
-			if color == self._color and self.is_on_board(l, c):
+		while self.is_my_marble(l, c):
+			if len(marbles_chain) < MAX_CHAIN_LENGHT:
 				marbles_chain.append([l, c])
-				l += dl
-				c += dc
-				color = self._board[l][c]
 			else:
 				return marbles_chain
+			l += dl
+			c += dc
 		
 		return marbles_chain
 
@@ -163,16 +169,18 @@ class Strategy:
 		try:
 			# Check if the next coordinate is on the board and is not one of our marble
 			if self.is_on_board(l + dl, c + dc) and not self.is_my_marble(l + dl, c + dc):
-				marble_chain = self.get_marbles_chain(marble, l, c, direction)
+				marble_chain = self.get_marbles_chain(l, c, direction)
 
 				if len(marble_chain) != 0:
 					# Check if we can push an opposite marble
+					priority += self.get_board_priority(l + dl, c + dc) * len(marble_chain)
 					if self.is_opposite_marble(l + dl, c + dc):
-						if not self.can_push(direction, l, c, marble_chain):
-							return None, None
+						push_priority = self.can_push(direction, l, c, marble_chain)
+						print("push priority : ", push_priority)
+						if push_priority is not None:
+							priority += push_priority
 						else:
-							priority += 100
-					priority += self.get_board_priority(l + dl, c + dc)
+							priority = None
 					return priority, marble_chain
 				else:
 					return None, None
