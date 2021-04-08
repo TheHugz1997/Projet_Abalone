@@ -64,7 +64,7 @@ class Abalone:
 
     def __play(self, client, msg_receive):
         """
-        Send those informations to the random_AI
+        Send those informations to strategy.py
         """
         lives = msg_receive['lives']
         state = msg_receive['state']

@@ -8,5 +8,5 @@ class Game(Strategy):
 
     def get_movement(self):
         strategy = self.get_strategy()
-        print(strategy.marble)
+        print("here is strategy marble {}".format(strategy.marble))
         return strategy.marble, strategy.direction

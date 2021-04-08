@@ -111,6 +111,23 @@ class Strategy:
 			return not self._board[l][c] == 'X'
 		except IndexError:
 			return False
+	
+	def future_marble_out(self, direction, l, c):
+		marbel_future_pos = self._board[l][c]
+		len_opposite_marble = 0
+
+		for enemy_directions in directions:
+			dl, dc = directions[enemy_directions]
+			dl_opp, dc_opp = directions[opposite[enemy_directions]]
+			# Check if there is enemy marble near our future marble's position and if our future marble's position is near the edge
+			if self.is_opposite_marble(l+dl, c+dc) and not self.is_on_board(l+dl_opp, c+dc_opp):
+				while self.is_opposite_marble(l + dl, c + dc):
+					l += dl
+					c += dc
+					len_opposite_marble +=1
+					if len_opposite_marble > 1:
+						return False
+		return True
 
 	def can_push(self, direction, l, c, marble_chain):
 		dl, dc = directions[direction]
@@ -132,7 +149,10 @@ class Strategy:
 			print("board : ", self._board[l + dl][c + dc])
 			print("x : ", l + dl, " y : ", c + dc)
 			if not self.is_on_board(l + dl, c + dc):
-				return 100
+				if self.future_marble_out(direction, l+dl, c+dc) or len_marble == 3:
+					return 100
+				else:
+					return 50
 			elif self.is_free(l + dl, c + dc):
 				return 50
 			else:
@@ -162,6 +182,7 @@ class Strategy:
 		except IndexError:
 			return NO_PRIORITY
 
+
 	def get_marbles(self, marble, direction, l, c):
 		priority = 0
 		dl, dc = directions[direction]
@@ -169,6 +190,7 @@ class Strategy:
 		try:
 			# Check if the next coordinate is on the board and is not one of our marble
 			if self.is_on_board(l + dl, c + dc) and not self.is_my_marble(l + dl, c + dc):
+				# Takes marbles as much as possible that can follow the same direction
 				marble_chain = self.get_marbles_chain(l, c, direction)
 
 				if len(marble_chain) != 0:
@@ -190,9 +212,13 @@ class Strategy:
 			return None, None
 
 	def get_strategy(self):
+		# Get the index of each line and the lines of the board
 		for index_line, line in enumerate(self._board):
+			# Get the index of each column and the composition of each line
 			for index_column, marble in enumerate(line):
+				# Get the AI's first marble depend of the color
 				if marble == self._color:
+					# Get a direction like 'NE' etc ...
 					for direction in directions.keys():
 						priority, marbles = self.get_marbles(marble, direction, index_line, index_column)
 						if priority is not None:
