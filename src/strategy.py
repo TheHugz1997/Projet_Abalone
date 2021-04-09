@@ -116,18 +116,18 @@ class Strategy:
 		marbel_future_pos = self._board[l][c]
 		len_opposite_marble = 0
 
-		for enemy_directions in directions:
-			dl, dc = directions[enemy_directions]
-			dl_opp, dc_opp = directions[opposite[enemy_directions]]
-			# Check if there is enemy marble near our future marble's position and if our future marble's position is near the edge
+		for ennemy_directions in directions:
+			dl, dc = directions[ennemy_directions]
+			dl_opp, dc_opp = directions[opposite[ennemy_directions]]
+			# Check if there is ennemy marble near our future marble's position and if our future marble's position is near the edge
 			if self.is_opposite_marble(l+dl, c+dc) and not self.is_on_board(l+dl_opp, c+dc_opp):
 				while self.is_opposite_marble(l + dl, c + dc):
 					l += dl
 					c += dc
 					len_opposite_marble +=1
 					if len_opposite_marble > 1:
-						return False
-		return True
+						return True
+		return False
 
 	def can_push(self, direction, l, c, marble_chain):
 		dl, dc = directions[direction]
@@ -145,21 +145,13 @@ class Strategy:
 
 		# Check if there's no marble of mine behind of the opposite chain
 		if len_marble > len_opposite_marble and len_opposite_marble > 0:
-			print("is on board : ", self.is_on_board(l + dl, c + dc))
-			print("board : ", self._board[l + dl][c + dc])
-			print("x : ", l + dl, " y : ", c + dc)
 			if not self.is_on_board(l + dl, c + dc):
-				if self.future_marble_out(direction, l+dl, c+dc) or len_marble == 3:
-					return 100
-				else:
-					return 50
+				return 100
 			elif self.is_free(l + dl, c + dc):
 				return 50
 			else:
 				return None
 		return None
-
-
 
 	def get_marbles_chain(self, l, c, direction):
 		back_direction = opposite[direction]
@@ -198,7 +190,9 @@ class Strategy:
 					priority += self.get_board_priority(l + dl, c + dc) * len(marble_chain)
 					if self.is_opposite_marble(l + dl, c + dc):
 						push_priority = self.can_push(direction, l, c, marble_chain)
-						print("push priority : ", push_priority)
+						for marble_to_move in marble_chain:
+							if self.future_marble_out(direction, *marble_to_move):
+								priority -= 100
 						if push_priority is not None:
 							priority += push_priority
 						else:
