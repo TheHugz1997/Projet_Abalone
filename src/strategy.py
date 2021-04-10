@@ -120,13 +120,30 @@ class Strategy:
 			dl, dc = directions[ennemy_directions]
 			dl_opp, dc_opp = directions[opposite[ennemy_directions]]
 			# Check if there is ennemy marble near our future marble's position and if our future marble's position is near the edge
-			if self.is_opposite_marble(l+dl, c+dc) and not self.is_on_board(l+dl_opp, c+dc_opp):
+			if self.is_opposite_marble(l + dl, c + dc) and not self.is_on_board(l + dl_opp, c + dc_opp):
 				while self.is_opposite_marble(l + dl, c + dc):
 					l += dl
 					c += dc
 					len_opposite_marble +=1
 					if len_opposite_marble > 1:
 						return True
+		return False
+
+	def can_be_ejected(self, l, c):
+		for direction, coordinates in directions.items():
+			dl, dc = coordinates
+			dl_back, dc_back = directions[opposite[direction]]
+			len_marble, len_opposite_marble = len(self.get_marbles_chain(l, c, opposite[direction])), 0
+
+			if not self.is_on_board(l + dl_back, c + dc_back) and len_marble < MAX_CHAIN_LENGHT:
+				while self.is_opposite_marble(l + (dl * len_marble), c + (dc * len_marble)) and len_opposite_marble < MAX_CHAIN_LENGHT:
+					len_opposite_marble += 1
+					l += dl
+					c += dc
+
+			if len_marble < len_opposite_marble:
+				return True
+		
 		return False
 
 	def can_push(self, direction, l, c, marble_chain):
@@ -175,11 +192,10 @@ class Strategy:
 			return NO_PRIORITY
 
 
-	def get_marbles(self, marble, direction, l, c):
-		priority = 0
-		dl, dc = directions[direction]
-
-		try:
+	def get_marbles(self, marble, l, c):
+		for direction, coordinates in directions.items():
+			dl, dc = coordinates
+			priority = 0
 			# Check if the next coordinate is on the board and is not one of our marble
 			if self.is_on_board(l + dl, c + dc) and not self.is_my_marble(l + dl, c + dc):
 				# Takes marbles as much as possible that can follow the same direction
@@ -188,22 +204,21 @@ class Strategy:
 				if len(marble_chain) != 0:
 					# Check if we can push an opposite marble
 					priority += self.get_board_priority(l + dl, c + dc) * len(marble_chain)
+
+					for marble_to_move in marble_chain:
+						if self.future_marble_out(direction, *marble_to_move):
+							priority -= 100
+						if self.can_be_ejected(*marble_to_move):
+							priority += 100
+
 					if self.is_opposite_marble(l + dl, c + dc):
 						push_priority = self.can_push(direction, l, c, marble_chain)
-						for marble_to_move in marble_chain:
-							if self.future_marble_out(direction, *marble_to_move):
-								priority -= 100
 						if push_priority is not None:
 							priority += push_priority
 						else:
 							priority = None
-					return priority, marble_chain
-				else:
-					return None, None
-			else:
-				return None, None
-		except IndexError:
-			return None, None
+					yield priority, marble_chain, direction
+		yield None, None, None
 
 	def get_strategy(self):
 		# Get the index of each line and the lines of the board
@@ -212,12 +227,11 @@ class Strategy:
 			for index_column, marble in enumerate(line):
 				# Get the AI's first marble depend of the color
 				if marble == self._color:
-					# Get a direction like 'NE' etc ...
-					for direction in directions.keys():
-						priority, marbles = self.get_marbles(marble, direction, index_line, index_column)
+					# Get the current priority, marble to move and the direction to go
+					for priority, marbles, direction in self.get_marbles(marble, index_line, index_column):
 						if priority is not None:
 							if priority > self.__strategy_cfg.priority:
 								self.__strategy_cfg.priority = priority
-								self.__strategy_cfg.marble = marbles
+								self.__strategy_cfg.marbles = marbles
 								self.__strategy_cfg.direction = direction
 		return self.__strategy_cfg
