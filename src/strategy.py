@@ -12,6 +12,7 @@ BOARD_WIDHT = 9
 BOARD_HEIGHT = 9
 MAX_CHAIN_LENGHT = 3
 COLORS = ['B', 'W']
+PREVIOUS = {}
 
 directions = {
 	'NE': (-1,  0),
@@ -83,6 +84,7 @@ class Strategy:
 		self._board = board
 		self.__best_choice = None
 		self.__strategy_cfg = StrategyConfiguration()
+		global PREVIOUS
 
 	def is_free(self, l, c):
 		try:
@@ -119,7 +121,7 @@ class Strategy:
 		for ennemy_directions in directions:
 			dl, dc = directions[ennemy_directions]
 			dl_opp, dc_opp = directions[opposite[ennemy_directions]]
-			# Check if there is ennemy marble near our future marble's position and if our future marble's position is near the edge
+			# Check if there is an ennemy marble near our future marble's position and if our future marble's position is near the edge
 			if self.is_opposite_marble(l + dl, c + dc) and not self.is_on_board(l + dl_opp, c + dc_opp):
 				while self.is_opposite_marble(l + dl, c + dc):
 					l += dl
@@ -145,6 +147,39 @@ class Strategy:
 				return True
 		
 		return False
+
+	def previous_pos(self, identification, priority, marbles, direction):
+		# Called when priority is not none and check if the next move is not the same as it was two moves earlier
+		if PREVIOUS == {}:
+			return True
+		else:
+			try:
+				if "penultimate" in PREVIOUS[identification].keys():
+					if [priority, marbles, direction] == PREVIOUS[identification]["penultimate"]:
+						print("same move")
+						return False
+					else:
+						return True
+				else:
+					return True
+			except KeyError:
+				return True
+	
+	def fill_previous(self, identification, priority, marbles, direction):
+		# Called when the move is accepted and not the same as earlier
+		# Builds the dico previous
+		if PREVIOUS == {}:
+			PREVIOUS[identification] = {}
+			PREVIOUS[identification]["last"] = [priority, marbles, direction]
+		elif identification in PREVIOUS.keys():
+			if "last" in PREVIOUS[identification].keys():
+				PREVIOUS[identification]["penultimate"] = PREVIOUS[identification]["last"]
+				PREVIOUS[identification]["last"] = [priority, marbles, direction]
+			else:
+				PREVIOUS[identification]["last"] = [priority, marbles, direction]
+		else:
+			PREVIOUS[identification] = {}
+			PREVIOUS[identification]["last"] = [priority, marbles, direction]
 
 	def can_push(self, direction, l, c, marble_chain):
 		dl, dc = directions[direction]
@@ -231,7 +266,10 @@ class Strategy:
 					for priority, marbles, direction in self.get_marbles(marble, index_line, index_column):
 						if priority is not None:
 							if priority > self.__strategy_cfg.priority:
-								self.__strategy_cfg.priority = priority
-								self.__strategy_cfg.marbles = marbles
-								self.__strategy_cfg.direction = direction
+								if self.previous_pos(marble, priority, marbles, direction):
+									self.__strategy_cfg.priority = priority
+									self.__strategy_cfg.marbles = marbles
+									self.__strategy_cfg.direction = direction
+		self.fill_previous(self._color, self.__strategy_cfg.priority, self.__strategy_cfg.marbles, self.__strategy_cfg.direction)
+		print("here's previous : {}".format(PREVIOUS))
 		return self.__strategy_cfg
