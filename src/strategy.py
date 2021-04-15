@@ -135,9 +135,13 @@ class Strategy:
 		for direction, coordinates in directions.items():
 			dl, dc = coordinates
 			dl_back, dc_back = directions[opposite[direction]]
+
+			if self.is_on_board(l + dl_back, c + dc_back):
+				continue
+
 			len_marble, len_opposite_marble = len(self.get_marbles_chain(l, c, opposite[direction])), 0
 
-			if not self.is_on_board(l + dl_back, c + dc_back) and len_marble < MAX_CHAIN_LENGHT:
+			if len_opposite_marble < MAX_CHAIN_LENGHT:
 				while self.is_opposite_marble(l + (dl * len_marble), c + (dc * len_marble)) and len_opposite_marble < MAX_CHAIN_LENGHT:
 					len_opposite_marble += 1
 					l += dl
@@ -200,7 +204,7 @@ class Strategy:
 			if not self.is_on_board(l + dl, c + dc):
 				return 100
 			elif self.is_free(l + dl, c + dc):
-				return 50
+				return 100 - (self.get_board_priority(l + dl, c + dc) * 10)
 			else:
 				return None
 		return None
@@ -244,7 +248,7 @@ class Strategy:
 						if self.future_marble_out(direction, *marble_to_move):
 							priority -= 100
 						if self.can_be_ejected(*marble_to_move):
-							priority += 100
+							priority += 300
 
 					if self.is_opposite_marble(l + dl, c + dc):
 						push_priority = self.can_push(direction, l, c, marble_chain)
