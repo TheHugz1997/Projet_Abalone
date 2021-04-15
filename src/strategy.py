@@ -132,20 +132,22 @@ class Strategy:
 		return False
 
 	def can_be_ejected(self, l, c):
+		"""
+			Check if a marble can ba ejected, it only check when the marble is on the edge of the board
+		"""
 		for direction, coordinates in directions.items():
 			dl, dc = coordinates
 			dl_back, dc_back = directions[opposite[direction]]
 
-			if self.is_on_board(l + dl_back, c + dc_back):
+			if self.is_on_board(l + dl_back, c + dc_back) or self.is_my_marble(l + dl_back, c + dc_back):
 				continue
 
 			len_marble, len_opposite_marble = len(self.get_marbles_chain(l, c, opposite[direction])), 0
 
-			if len_opposite_marble < MAX_CHAIN_LENGHT:
-				while self.is_opposite_marble(l + (dl * len_marble), c + (dc * len_marble)) and len_opposite_marble < MAX_CHAIN_LENGHT:
-					len_opposite_marble += 1
-					l += dl
-					c += dc
+			while self.is_opposite_marble(l + (dl * len_marble), c + (dc * len_marble)) and len_opposite_marble < MAX_CHAIN_LENGHT:
+				len_opposite_marble += 1
+				l += dl
+				c += dc
 
 			if len_marble < len_opposite_marble:
 				return True
@@ -245,7 +247,7 @@ class Strategy:
 					priority += self.get_board_priority(l + dl, c + dc) * len(marble_chain)
 
 					for marble_to_move in marble_chain:
-						if self.future_marble_out(direction, *marble_to_move):
+						if self.future_marble_out(direction, marble_to_move[0] + dl, marble_to_move[1] + dc):
 							priority -= 100
 						if self.can_be_ejected(*marble_to_move):
 							priority += 300
