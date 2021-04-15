@@ -113,9 +113,16 @@ class Strategy:
 			return not self._board[l][c] == 'X'
 		except IndexError:
 			return False
+
+	def is_move_away_edge(self, l, c, direction):
+		"""
+			Check if the marble is movin away from the edge of the board
+		"""
+		dl_back, dc_back = directions[opposite[direction]]
+
+		return not self.is_on_board(l + dl_back, c + dc_back)
 	
 	def future_marble_out(self, direction, l, c):
-		marbel_future_pos = self._board[l][c]
 		len_opposite_marble = 0
 
 		for ennemy_directions in directions:
@@ -216,7 +223,7 @@ class Strategy:
 		dl, dc = directions[back_direction]
 		marbles_chain = []
 
-		while self.is_my_marble(l, c):
+		while self.is_my_marble(l, c) and self.is_on_board(l, c):
 			if len(marbles_chain) < MAX_CHAIN_LENGHT:
 				marbles_chain.append([l, c])
 			else:
@@ -234,6 +241,9 @@ class Strategy:
 
 
 	def get_marbles(self, marble, l, c):
+		"""
+			Get all the move that can do a marble
+		"""
 		for direction, coordinates in directions.items():
 			dl, dc = coordinates
 			priority = 0
@@ -248,9 +258,11 @@ class Strategy:
 
 					for marble_to_move in marble_chain:
 						if self.future_marble_out(direction, marble_to_move[0] + dl, marble_to_move[1] + dc):
-							priority -= 100
+							priority -= 150
 						if self.can_be_ejected(*marble_to_move):
-							priority += 300
+							priority += 150
+						if self.is_move_away_edge(*marble_to_move, direction):
+							priority += 20
 
 					if self.is_opposite_marble(l + dl, c + dc):
 						push_priority = self.can_push(direction, l, c, marble_chain)
