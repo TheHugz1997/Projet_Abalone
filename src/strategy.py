@@ -87,24 +87,56 @@ class Strategy:
 		global PREVIOUS
 
 	def is_free(self, l, c):
+		"""
+			Check if the place choose is empyt
+			Parameters:
+				l (int): The current board line
+				c (int): The current board column
+			Returns:
+				bool: True if the place is empty, False otherwise
+		"""
 		try:
 			return self._board[l][c] == 'E'
 		except IndexError:
 			return False
 
 	def is_my_marble(self, l, c):
+		"""
+			Check if it's one of our marble
+			Parameters:
+				l (int): The current board line
+				c (int): The current board column
+			Returns:
+				bool: True if it's one of my marble, False otherwise
+		"""
 		try:
 			return self._board[l][c] == self._color
 		except IndexError:
 			return False
 
 	def is_opposite_marble(self, l, c):
+		"""
+			Check if it's an opposite marble board
+			Parameters:
+				l (int): The current board line
+				c (int): The current board column
+			Returns:
+				bool: True if the marble is one of the opposite, False otherwise
+		"""
 		try:
 			return self._board[l][c] == COLORS[self._current - 1]
 		except IndexError:
 			return False
 
 	def is_on_board(self, l, c):
+		"""
+			Check if we are on the board
+			Parameters:
+				l (int): The current board line
+				c (int): The current board column
+			Returns:
+				bool: True if the marble is on the board, False otherwise
+		"""
 		try:
 			if not -1 < l < BOARD_WIDHT:
 				return False
@@ -116,13 +148,27 @@ class Strategy:
 
 	def is_move_away_edge(self, l, c, direction):
 		"""
-			Check if the marble is movin away from the edge of the board
+			Check if the marble is going away from the edge of the board
+			Parameters:
+				l (int): The current board line
+				c (int): The current board column
+				direction (string): Direction key to go
+			Returns:
+				bool: True if it's going away, False otherwise
 		"""
 		dl_back, dc_back = directions[opposite[direction]]
 
 		return not self.is_on_board(l + dl_back, c + dc_back)
 	
-	def future_marble_out(self, direction, l, c):
+	def future_marble_out(self, l, c):
+		"""
+			Check if one of our marble can be ejected in the future move
+			Parameters:
+				l (int): The current board line
+				c (int): The current board column
+			Returns:
+				bool: True if it can be ejected, False otherwise
+		"""
 		len_opposite_marble = 0
 
 		for ennemy_directions in directions:
@@ -140,7 +186,12 @@ class Strategy:
 
 	def can_be_ejected(self, l, c):
 		"""
-			Check if a marble can ba ejected, it only check when the marble is on the edge of the board
+			Check if one of our marble can be ejected
+			Parameters:
+				l (int): The current board line
+				c (int): The current board column
+			Returns:
+				bool: True if it can be ejected, False otherwise
 		"""
 		for direction, coordinates in directions.items():
 			dl, dc = coordinates
@@ -195,6 +246,16 @@ class Strategy:
 			PREVIOUS[identification]["last"] = [priority, marbles, direction]
 
 	def can_push(self, direction, l, c, marble_chain):
+		"""
+			Check if we can push opposite marbles
+			Parameters:
+				direction (string): The direction key where we want to push
+				l (int): The current board line
+				c (int): The current board column
+				marble_chain (list): List with our marble chain
+			Returns:
+				int: The priority when we can push. None when we can't push
+		"""
 		dl, dc = directions[direction]
 
 		len_marble = len(marble_chain)
@@ -219,6 +280,14 @@ class Strategy:
 		return None
 
 	def get_marbles_chain(self, l, c, direction):
+		"""
+			Return the marble chain that can form the marble choosed
+			Parameters:
+				l (int): The current board line
+				c (int): The current board column
+			Returns:
+				list: Return a list with all the marbles. The higher len of the list is 3 marble
+		"""
 		back_direction = opposite[direction]
 		dl, dc = directions[back_direction]
 		marbles_chain = []
@@ -234,6 +303,14 @@ class Strategy:
 		return marbles_chain
 
 	def get_board_priority(self, l, c):
+		"""
+			Get the board place priority
+			Parameters:
+				l (int): The current board line
+				c (int): The current board column
+			Returns:
+				int: The priority of the current place on the board
+		"""
 		try:
 			return board_weight[l][c]
 		except IndexError:
@@ -242,7 +319,13 @@ class Strategy:
 
 	def get_marbles(self, marble, l, c):
 		"""
-			Get all the move that can do a marble
+			Check all the move that a marble can do
+			Parameters:
+				marble (string): The current marble
+				l (int): The current board line
+				c (int): The current board column
+			Returns:
+				int, list, string: The priority, marble chain, direction
 		"""
 		for direction, coordinates in directions.items():
 			dl, dc = coordinates
@@ -257,7 +340,7 @@ class Strategy:
 					priority += self.get_board_priority(l + dl, c + dc) * len(marble_chain)
 
 					for marble_to_move in marble_chain:
-						if self.future_marble_out(direction, marble_to_move[0] + dl, marble_to_move[1] + dc):
+						if self.future_marble_out(marble_to_move[0] + dl, marble_to_move[1] + dc):
 							priority -= 150
 						if self.can_be_ejected(*marble_to_move):
 							priority += 150
@@ -274,6 +357,11 @@ class Strategy:
 		yield None, None, None
 
 	def get_strategy(self):
+		"""
+			Get the current marbles to move
+			Returns:
+				StrategyConfiguration: The current move to do
+		"""
 		# Get the index of each line and the lines of the board
 		for index_line, line in enumerate(self._board):
 			# Get the index of each column and the composition of each line
