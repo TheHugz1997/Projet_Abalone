@@ -2,7 +2,7 @@ import sys
 import logging
 from game import Game
 from threading import Thread
-from json_formater import json_decode, json_subscribe, json_ping_answer, json_play_response
+from json_formater import json_decode, json_subscribe, json_ping_answer, json_play_response, json_give_up
 from client_tcp import ClientTCP
 
 
@@ -76,7 +76,15 @@ class Abalone:
 		state = msg_receive['state']
 
 		c_game = Game(lives, state['current'], state['board'])
-		msg = json_play_response(*c_game.get_movement())
+
+		marbles, direction = c_game.get_movement()
+
+		# If no movement is found, we give-up
+		if marbles is not None and direction is not None:
+			msg = json_play_response(marbles, direction)
+		else:
+			msg = json_give_up()
+
 		self.__client.send_answer(client, msg)
 
 

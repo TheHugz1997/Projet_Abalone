@@ -285,6 +285,7 @@ class Strategy:
 			Parameters:
 				l (int): The current board line
 				c (int): The current board column
+				direction (string): The direction key where we want to push
 			Returns:
 				list: Return a list with all the marbles. The higher len of the list is 3 marble
 		"""
