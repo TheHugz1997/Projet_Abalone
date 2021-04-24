@@ -1,4 +1,6 @@
 import logging
+import random
+from random import shuffle
 
 NO_PRIORITY = None
 BOARD_PRIORITY_1 = 5
@@ -316,6 +318,16 @@ class Strategy:
 		except IndexError:
 			return NO_PRIORITY
 
+	def possibility_shuffle(self):
+		res = []
+		# Get the index of each line and the lines of the board
+		for index_line, line in enumerate(self._board):
+			# Get the index of each column and the composition of each line
+			for index_column, marble in enumerate(line):
+				res.append((index_line, index_column, marble))
+		random.shuffle(res)
+		return res
+
 
 	def get_marbles(self, marble, l, c):
 		"""
@@ -362,20 +374,20 @@ class Strategy:
 			Returns:
 				StrategyConfiguration: The current move to do
 		"""
-		# Get the index of each line and the lines of the board
-		for index_line, line in enumerate(self._board):
-			# Get the index of each column and the composition of each line
-			for index_column, marble in enumerate(line):
-				# Get the AI's first marble depend of the color
-				if marble == self._color:
-					# Get the current priority, marble to move and the direction to go
-					for priority, marbles, direction in self.get_marbles(marble, index_line, index_column):
-						if priority is not None:
-							if priority > self.__strategy_cfg.priority:
-								if self.previous_pos(marble, priority, marbles, direction):
-									self.__strategy_cfg.priority = priority
-									self.__strategy_cfg.marbles = marbles
-									self.__strategy_cfg.direction = direction
+		test = self.possibility_shuffle()
+		for i in range(len(test)):
+			index_line = test[i][0]
+			index_column = test[i][1]
+			marble = test[i][2]
+			if marble == self._color:
+				# Get the current priority, marble to move and the direction to go
+				for priority, marbles, direction in self.get_marbles(marble, index_line, index_column):
+					if priority is not None:
+						if priority > self.__strategy_cfg.priority:
+							if self.previous_pos(marble, priority, marbles, direction):
+								self.__strategy_cfg.priority = priority
+								self.__strategy_cfg.marbles = marbles
+								self.__strategy_cfg.direction = direction
 		self.fill_previous(self._color, self.__strategy_cfg.priority, self.__strategy_cfg.marbles, self.__strategy_cfg.direction)
 		print("here's previous : {}".format(PREVIOUS))
 		return self.__strategy_cfg
