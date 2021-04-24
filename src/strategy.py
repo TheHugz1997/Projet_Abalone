@@ -164,7 +164,7 @@ class Strategy:
 	
 	def future_marble_out(self, l, c):
 		"""
-			Check if one of our marble can be ejected in the future move
+			Check if one of our marble can be ejected in the next move
 			Parameters:
 				l (int): The current board line
 				c (int): The current board column
@@ -173,10 +173,10 @@ class Strategy:
 		"""
 		len_opposite_marble = 0
 
-		for ennemy_directions in directions:
-			dl, dc = directions[ennemy_directions]
-			dl_opp, dc_opp = directions[opposite[ennemy_directions]]
-			# Check if there is an ennemy marble near our future marble's position and if our future marble's position is near the edge
+		for enemy_directions in directions:
+			dl, dc = directions[enemy_directions]
+			dl_opp, dc_opp = directions[opposite[enemy_directions]]
+			# Check if there is an enemy marble near our future marble's position and if our future marble's position is near the edge
 			if self.is_opposite_marble(l + dl, c + dc) and not self.is_on_board(l + dl_opp, c + dc_opp):
 				while self.is_opposite_marble(l + dl, c + dc):
 					l += dl
@@ -274,6 +274,8 @@ class Strategy:
 		# Check if there's no marble of mine behind of the opposite chain
 		if len_marble > len_opposite_marble and len_opposite_marble > 0:
 			if not self.is_on_board(l + dl, c + dc):
+				if self.marble_counter() == 9:
+					return 1000
 				return 100
 			elif self.is_free(l + dl, c + dc):
 				return 100 - (self.get_board_priority(l + dl, c + dc) * 10)
@@ -327,6 +329,16 @@ class Strategy:
 				res.append((index_line, index_column, marble))
 		random.shuffle(res)
 		return res
+	
+	def marble_counter(self):
+		number_enemy_marbles = 0
+		# Get the index of each line and the lines of the board
+		for index_line, line in enumerate(self._board):
+			# Get the index of each column and the composition of each line
+			for index_column, marble in enumerate(line):
+				if marble == COLORS[self._current - 1]:
+					number_enemy_marbles += 1
+		return number_enemy_marbles
 
 
 	def get_marbles(self, marble, l, c):
@@ -389,5 +401,5 @@ class Strategy:
 								self.__strategy_cfg.marbles = marbles
 								self.__strategy_cfg.direction = direction
 		self.fill_previous(self._color, self.__strategy_cfg.priority, self.__strategy_cfg.marbles, self.__strategy_cfg.direction)
-		print("here's previous : {}".format(PREVIOUS))
+		print("here's priority : {}".format(self.__strategy_cfg.priority ))
 		return self.__strategy_cfg
