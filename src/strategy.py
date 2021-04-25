@@ -48,10 +48,10 @@ board_weight = [
 
 
 class StrategyConfiguration:
-	def __init__(self):
-		self.__marbles = []
-		self.__direction = None
-		self.__priority = 0
+	def __init__(self, marbles=[], direction=None, priority=0):
+		self.__marbles = marbles
+		self.__direction = direction
+		self.__priority = priority
 
 	@property
 	def marbles(self):
@@ -76,6 +76,10 @@ class StrategyConfiguration:
 	@priority.setter
 	def priority(self, priority):
 		self.__priority = priority
+
+	def __eq__(self, other):
+		return (self.__priority == other.priority) and (self.__marbles == other.marbles)and \
+			(self.__direction == other.direction)
 
 
 class Strategy:
