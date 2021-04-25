@@ -345,6 +345,28 @@ class Strategy:
 		return number_enemy_marbles
 
 
+	def get_future_board(self, marbles, direction):
+		"""
+				Return the future board state
+				Parameters:
+					marbles (list): All the marbles to move
+					direction (string): Direction to go
+				Returns:
+					The future board
+			"""
+		dl, dc = directions[direction]
+		board = deepcopy(self._board)
+
+		if marbles is not None:
+				for marble in marbles:
+					l, c = marble[0], marble[1]
+					if not self.is_on_board(l + dl, c + dc):
+						break
+					board[l][c] = 'E'
+					board[l + dl][c + dc] = self._color
+
+		return board
+
 	def get_marbles(self, marble, l, c):
 		"""
 			Check all the move that a marble can do
