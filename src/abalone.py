@@ -6,7 +6,7 @@ from json_formater import json_decode, json_subscribe, json_ping_answer, json_pl
 from client_tcp import ClientTCP
 
 
-ABALONE_NAME = "Hugo&Alex"
+ABALONE_NAME = "Recursive"
 MATRICULES = ["195347", "195004"]
 
 
@@ -77,8 +77,7 @@ class Abalone:
 
 		c_game = Game(lives, state['current'], state['board'])
 
-		marbles, direction = c_game.get_movement()
-
+		_, marbles, direction = c_game.get_movement()
 		# If no movement is found, we give-up
 		if marbles is not None and direction is not None:
 			msg = json_play_response(marbles, direction)

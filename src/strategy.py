@@ -1,36 +1,6 @@
 import logging
-
-NO_PRIORITY = None
-BOARD_PRIORITY_1 = 5
-BOARD_PRIORITY_2 = 20
-BOARD_PRIORITY_3 = 30
-BOARD_PRIORITY_4 = 40
-BOARD_PRIORITY_5 = 50
-PUSH_PRIORITY = 70
-
-BOARD_WIDHT = 9
-BOARD_HEIGHT = 9
-MAX_CHAIN_LENGHT = 3
-COLORS = ['B', 'W']
-PREVIOUS = {}
-
-directions = {
-	'NE': (-1,  0),
-	'SW': ( 1,  0),
-	'NW': (-1, -1),
-	'SE': ( 1,  1),
-	 'E': ( 0,  1),
-	 'W': ( 0, -1)
-}
-
-opposite = {
-	'NE': 'SW',
-	'SW': 'NE',
-	'NW': 'SE',
-	'SE': 'NW',
-	'E': 'W',
-	'W': 'E'
-}
+from copy import deepcopy
+from abalone_utility import *
 
 board_weight = [
 	[1, 1, 1, 1, 1, None, None, None, None],
@@ -77,8 +47,8 @@ class StrategyConfiguration:
 
 
 class Strategy:
-	def __init__(self, lives, color, board):
-		self._lives = lives
+	def __init__(self, color, board):
+		# self._lives = lives
 		self._current = color
 		self._color = COLORS[color]
 		self._board = board
@@ -317,6 +287,27 @@ class Strategy:
 		except IndexError:
 			return NO_PRIORITY
 
+	def get_future_board(self, marbles, direction):
+		"""
+			Return the future board state
+			Parameters:
+				marbles (list): All the marbles to move
+				direction (string): Direction to go
+			Returns:
+				The future board
+		"""
+		dl, dc = directions[direction]
+		board = deepcopy(self._board)
+
+		if marbles is not None:
+			for marble in marbles:
+				l, c = marble[0], marble[1]
+				if not self.is_on_board(l + dl, c + dc):
+					break
+				board[l][c] = 'E'
+				board[l + dl][c + dc] = self._color
+		
+		return board
 
 	def get_marbles(self, marble, l, c):
 		"""
@@ -357,6 +348,36 @@ class Strategy:
 					yield priority, marble_chain, direction
 		yield None, None, None
 
+	def check_marbles_priority(self, l, c, direction):
+		dl, dc = directions[direction]
+		priority = 0
+
+		if not self.is_my_marble(l, c):
+			return [], None
+
+		if self.is_on_board(l + dl, c + dc) and not self.is_my_marble(l + dl, c + dc):
+			# Check if we can push an opposite marble
+			marbles = self.get_marbles_chain(l, c, direction)
+			if len(marbles) > 0:
+				priority += self.get_board_priority(l + dl, c + dc) * len(marbles)
+				
+				for marble_to_move in marbles:
+					# if self.future_marble_out(marble_to_move[0] + dl, marble_to_move[1] + dc):
+					# 	priority -= 150
+					if self.can_be_ejected(*marble_to_move):
+						priority += 150
+					if self.is_move_away_edge(*marble_to_move, direction):
+						priority += 20
+
+				if self.is_opposite_marble(l + dl, c + dc):
+					push_priority = self.can_push(direction, l, c, marbles)
+					if push_priority is not None:
+						priority += push_priority
+					else:
+						priority = None
+			return list(marbles), priority
+		return [], None
+
 	def get_strategy(self):
 		"""
 			Get the current marbles to move
@@ -379,4 +400,5 @@ class Strategy:
 									self.__strategy_cfg.direction = direction
 		self.fill_previous(self._color, self.__strategy_cfg.priority, self.__strategy_cfg.marbles, self.__strategy_cfg.direction)
 		print("here's previous : {}".format(PREVIOUS))
+		print(self.get_future_board(self.__strategy_cfg.marbles, self.__strategy_cfg.direction))
 		return self.__strategy_cfg
