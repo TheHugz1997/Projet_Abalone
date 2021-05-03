@@ -1,8 +1,14 @@
 import logging
+from collections import defaultdict
 from strategy import Strategy, StrategyConfiguration
 from abalone_utility import *
+from threading import Thread
 import time
 import random
+
+
+GAME_TIMEOUT = 2.5  # Seconds
+
 
 def timeit(func):
 	def wrapper(*arg, **kwargs):
@@ -12,35 +18,36 @@ def timeit(func):
 		return res
 	return wrapper
 
-from collections import defaultdict
-class Game():#Strategy):
+class Game():
 	def __init__(self, lives, player, board):
 		self.__board = board
 		self.__player = player
-		pass
+		self.__running = False
+		self.__return = [None, None, None]
 
-	def negamax_depth(self, player, board):
-		cache = defaultdict(lambda : 0)
-		def cache_negamax(player, board, depth=2, priority=None, marbles=None, direction=None, alpha=float('-inf'), beta=float('inf')):
+	def cache_negamax(self, player, board):
+		def depth_negamax(player, board, depth=2, priority=None, marbles=None, direction=None, alpha=float('-inf'), beta=float('inf')):
 			if depth == 0:
 				if priority is not None:
 					return -priority, marbles, direction
 				return None, None, None
 
 			strategy = Strategy(player, board)
-			best_value, best_marbles, best_direction = float('-inf'), None, None
+			best_value, best_marbles, best_direction = float("-inf"), None, None
 			for index_line, line in enumerate(board):
 				# Get the index of each column and the composition of each line
 				for index_column, marble in enumerate(line):
 					for c_direction in directions:
+						if not self.__running:
+							break
+						#return -priority, marbles, direction
 						# Get the current priority, marble to move and the direction to go
 						marble_chain, c_priority = strategy.check_marbles_priority(index_line,
 																	index_column, c_direction)
-
 						if c_priority is None or marble_chain is None:
 							continue
 						future_board = strategy.get_future_board(marble_chain, c_direction)
-						value, marbles, direction = cache_negamax(
+						value, marbles, direction = depth_negamax(
 							0 if player else 1, future_board, depth-1, -c_priority, marble_chain, c_direction, -beta, -alpha)
 						value = c_priority - value
 
@@ -51,15 +58,26 @@ class Game():#Strategy):
 								best_direction = c_direction
 						alpha = max(alpha, best_value)
 						if alpha >= beta:
-							continue
+							break
 			return -best_value, best_marbles, best_direction
-		return cache_negamax(player, board)
 
+		self.__return = depth_negamax(player, board)
+		print(self.__return)
 
 	@timeit
 	def get_movement(self):
-		# strategy = self.get_strategy()
-		#return strategy.marbles, strategy.direction
-		priority, marbles, direction = self.negamax_depth(self.__player, self.__board)
-		print("{}.{}.{}".format(priority, marbles, direction))
-		return priority, marbles, direction
+		self.__running = True
+		game_thread = Thread(target=self.cache_negamax,
+								args=(self.__player, self.__board))
+		game_thread.start()
+		time_start = time.time()
+		while (((time.time() - time_start) < GAME_TIMEOUT) and game_thread.is_alive()):
+			True
+		print(game_thread.is_alive())
+		self.__running = False
+		game_thread.join()
+
+		str_cfg = StrategyConfiguration(*self.__return)
+
+		print("priority : {}, marbles : {}, direction : {}".format(*self.__return))
+		return str_cfg.marbles, str_cfg.direction

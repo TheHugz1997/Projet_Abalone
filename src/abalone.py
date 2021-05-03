@@ -77,7 +77,9 @@ class Abalone:
 
 		c_game = Game(lives, state['current'], state['board'])
 
-		_, marbles, direction = c_game.get_movement()
+		marbles, direction = c_game.get_movement()
+		print(marbles, ':', direction)
+		print("here")
 		# If no movement is found, we give-up
 		if marbles is not None and direction is not None:
 			msg = json_play_response(marbles, direction)
