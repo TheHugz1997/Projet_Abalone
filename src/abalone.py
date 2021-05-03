@@ -76,7 +76,8 @@ class Abalone:
 		state = msg_receive['state']
 
 		c_game = Game(lives, state['current'], state['board'])
-		msg = json_play_response(*c_game.get_movement())
+		marbles, direction = c_game.get_movement()
+		msg = json_play_response(marbles, direction)
 		self.__client.send_answer(client, msg)
 
 

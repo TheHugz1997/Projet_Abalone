@@ -1,6 +1,7 @@
 import logging
 import random
 from random import shuffle
+from check_loop import CheckLoop
 
 NO_PRIORITY = None
 BOARD_PRIORITY_1 = 5
@@ -90,6 +91,10 @@ class Strategy:
 		self._board = board
 		self.__best_choice = None
 		self.__strategy_cfg = StrategyConfiguration()
+		self.__checkloop = CheckLoop()
+		self.__pointer = 0
+		self.__best_priorities = []
+		self.__strategies = {}
 		global PREVIOUS
 
 	def is_free(self, l, c):
@@ -217,7 +222,7 @@ class Strategy:
 				return True
 		
 		return False
-
+	"""
 	def previous_pos(self, identification, priority, marbles, direction):
 		# Called when priority is not none and check if the next move is not the same as it was two moves earlier
 		if PREVIOUS == {}:
@@ -250,6 +255,7 @@ class Strategy:
 		else:
 			PREVIOUS[identification] = {}
 			PREVIOUS[identification]["last"] = [priority, marbles, direction]
+	"""
 
 	def can_push(self, direction, l, c, marble_chain):
 		"""
@@ -343,17 +349,16 @@ class Strategy:
 				if marble == COLORS[self._current - 1]:
 					number_enemy_marbles += 1
 		return number_enemy_marbles
-
-
+	"""
 	def get_future_board(self, marbles, direction):
-		"""
+		
 				Return the future board state
 				Parameters:
 					marbles (list): All the marbles to move
 					direction (string): Direction to go
 				Returns:
 					The future board
-			"""
+			
 		dl, dc = directions[direction]
 		board = deepcopy(self._board)
 
@@ -366,6 +371,30 @@ class Strategy:
 					board[l + dl][c + dc] = self._color
 
 		return board
+	"""
+	
+	def sort_best_priorities(self, best_priorities):
+		best_priorities.sort(reverse=True)
+		return best_priorities 
+	
+	def get_the_second_priority(self, priority, priority_dico, second, second_dico):
+		"""
+			Get the second priority
+			Parameters: 
+				geatest priority(int), dictionnary{"greatest priority":[greatest priority, marbles, direction]},
+				 second_priority, dictionnary(with all the possibilities)
+			Returns:
+				list: [second priority, marbles, direction]
+		"""
+		second_priority = 0
+		for i in second:
+			print("priority_dico : {}".format(priority_dico))
+			print("second_dico : {}".format(second_dico))
+			if i == priority[0] and second_dico[i][2] != priority_dico[priority[0]][2]:
+				return second_dico[i]
+			elif i < priority[0]:
+				return second_dico[i]
+	
 
 	def get_marbles(self, marble, l, c):
 		"""
@@ -406,12 +435,16 @@ class Strategy:
 					yield priority, marble_chain, direction
 		yield None, None, None
 
-	def get_strategy(self):
+	def get_strategy(self, indicator=0):
 		"""
-			Get the current marbles to move
-			Returns:
-				StrategyConfiguration: The current move to do
+			Get the 2 best moves to do
+			Parameters:
+				indicator (int) : 0 == our color, 1 == the enemy's color
+			returns:
+				tuple where each item is a list : each list contains [priority, marbles, direction]
 		"""
+		best_temporary = {}
+		priority_temporary = []
 		test = self.possibility_shuffle()
 		for i in range(len(test)):
 			index_line = test[i][0]
@@ -422,10 +455,36 @@ class Strategy:
 				for priority, marbles, direction in self.get_marbles(marble, index_line, index_column):
 					if priority is not None:
 						if priority > self.__strategy_cfg.priority:
-							if self.previous_pos(marble, priority, marbles, direction):
-								self.__strategy_cfg.priority = priority
-								self.__strategy_cfg.marbles = marbles
-								self.__strategy_cfg.direction = direction
-		self.fill_previous(self._color, self.__strategy_cfg.priority, self.__strategy_cfg.marbles, self.__strategy_cfg.direction)
-		print("here's priority : {}".format(self.__strategy_cfg.priority ))
-		return self.__strategy_cfg
+							#if self.previous_pos(marble, priority, marbles, direction):
+							self.__strategy_cfg.priority = priority
+							self.__strategy_cfg.marbles = marbles
+							self.__strategy_cfg.direction = direction
+							self.__best_priorities = []
+							self.__strategies = {}
+							if indicator == 0:
+								print("heeeelloooo")
+								if self.__checkloop.is_looping(self.__strategy_cfg, self._board):
+									print("it works")
+									self.__strategy_cfg.priority = self.__strategy_cfg.priority//2
+									self.__best_priorities.append(self.__strategy_cfg.priority)
+									self.__strategies[priority] = [self.__strategy_cfg.priority, self.__strategy_cfg.marbles, self.__strategy_cfg.direction]
+								else:
+									self.__best_priorities.append(self.__strategy_cfg.priority)
+									self.__strategies[priority] = [self.__strategy_cfg.priority, self.__strategy_cfg.marbles, self.__strategy_cfg.direction]
+							elif indicator != 0:
+								self.__best_priorities.append(self.__strategy_cfg.priority)
+								self.__strategies[priority] = [self.__strategy_cfg.priority, self.__strategy_cfg.marbles, self.__strategy_cfg.direction]
+						best_temporary[priority] = [priority, marbles, direction]
+						priority_temporary.append(priority)
+		if indicator == 0:
+			print("okay")
+			self.__checkloop.append_test(self.__strategy_cfg, self._board)
+			#self.fill_previous(self._color, self.__strategy_cfg.priority, self.__strategy_cfg.marbles, self.__strategy_cfg.direction)
+			priorities_final = self.sort_best_priorities(priority_temporary)
+			second_priority = self.get_the_second_priority(self.__best_priorities, self.__strategies, priorities_final, best_temporary)
+			return self.__strategies[priorities_final[0]], second_priority
+		else:
+			#self.fill_previous(self._color, self.__strategy_cfg.priority, self.__strategy_cfg.marbles, self.__strategy_cfg.direction)
+			priorities_final = self.sort_best_priorities(priority_temporary)
+			second_priority = self.get_the_second_priority(self.__best_priorities, self.__strategies, priorities_final, best_temporary)
+			return self.__strategies[priorities_final[0]], second_priority
