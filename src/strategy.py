@@ -130,7 +130,7 @@ class Strategy:
 				bool: True if it's going away, False otherwise
 		"""
 		dl_back, dc_back = directions[opposite[direction]]
-
+		
 		return not self.is_on_board(l + dl_back, c + dc_back)
 
 	def marble_counter(self):
@@ -260,8 +260,7 @@ class Strategy:
 				return 100
 			elif self.is_free(l + dl, c + dc):
 				return 100 - (self.get_board_priority(l + dl, c + dc) * 10)
-			else:
-				return None
+
 		return None
 
 	def get_marbles_chain(self, l, c, direction):
@@ -348,9 +347,9 @@ class Strategy:
 
 					for marble_to_move in marble_chain:
 						if self.future_marble_out(marble_to_move[0] + dl, marble_to_move[1] + dc):
-							priority -= 150
+							priority -= 100
 						if self.can_be_ejected(*marble_to_move):
-							priority += 150
+							priority += 100
 						if self.is_move_away_edge(*marble_to_move, direction):
 							priority += 20
 

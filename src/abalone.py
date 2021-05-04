@@ -6,7 +6,7 @@ from json_formater import json_decode, json_subscribe, json_ping_answer, json_pl
 from client_tcp import ClientTCP
 
 
-ABALONE_NAME = "Recursive"
+ABALONE_NAME = "Hugo&Alex"
 MATRICULES = ["195347", "195004"]
 
 
@@ -92,7 +92,7 @@ class Abalone:
 if __name__ == '__main__':
 	logging.basicConfig(level=logging.DEBUG)
 
-	if len(sys.argv) > 1:
+	if len(sys.argv) > 2:
 		for arg in sys.argv[1:]:
 			name = "{}{}".format(ABALONE_NAME, arg)
 			abalone = Abalone(name, int(arg))
@@ -101,7 +101,7 @@ if __name__ == '__main__':
 		while True:
 			pass
 	else:
-		port = sys.argv[1] if len(sys.argv) == 2 else None
+		port = int(sys.argv[1]) if len(sys.argv) == 2 else None
 		abalone = Abalone(ABALONE_NAME, port)
 		abalone.subscribe_server()
 		while True:

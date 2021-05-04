@@ -36,13 +36,13 @@ class Game():
 
 			strategy = Strategy(player, board)
 			best_value, best_marbles, best_direction = float("-inf"), None, None
+
 			for index_line, line in enumerate(board):
 				# Get the index of each column and the composition of each line
 				for index_column, marble in enumerate(line):
 					for c_direction in directions:
 						if not self.__running:
 							break
-						#return -priority, marbles, direction
 						# Get the current priority, marble to move and the direction to go
 						marble_chain, c_priority = strategy.check_marbles_priority(index_line,
 																	index_column, c_direction)
@@ -72,8 +72,7 @@ class Game():
 	@timeit
 	def get_movement(self):
 		self.__running = True
-		game_thread = Thread(target=self.cache_negamax,
-								args=(self.__player, self.__board))
+		game_thread = Thread(target=self.cache_negamax, args=(self.__player, self.__board))
 		game_thread.start()
 		time_start = time.time()
 		while (((time.time() - time_start) < GAME_TIMEOUT) and game_thread.is_alive()):
