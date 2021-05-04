@@ -2,6 +2,7 @@ import logging
 from copy import deepcopy
 from abalone_utility import *
 
+
 board_weight = [
 	[1, 1, 1, 1, 1, None, None, None, None],
 	[1, 2, 2, 2, 2, 1, None, None, None],
@@ -45,6 +46,8 @@ class StrategyConfiguration:
 	def priority(self, priority):
 		self.__priority = priority
 
+	def __eq__(self, other):
+		return (self.__marbles == other.marbles) and (self.__direction == other.direction)
 
 class Strategy:
 	def __init__(self, color, board):

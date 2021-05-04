@@ -1,8 +1,9 @@
-import logging
 from collections import defaultdict
 from strategy import Strategy, StrategyConfiguration
 from abalone_utility import *
 from threading import Thread
+from check_loop import CheckLoop
+import logging
 import time
 import random
 
@@ -19,6 +20,7 @@ def timeit(func):
 	return wrapper
 
 class Game():
+	__check_loop = CheckLoop()
 	def __init__(self, lives, player, board):
 		self.__board = board
 		self.__player = player
@@ -46,10 +48,13 @@ class Game():
 																	index_column, c_direction)
 						if c_priority is None or marble_chain is None:
 							continue
+
 						future_board = strategy.get_future_board(marble_chain, c_direction)
 						value, marbles, direction = depth_negamax(
 							0 if player else 1, future_board, depth-1, -c_priority, marble_chain, c_direction, -beta, -alpha)
 						value = c_priority - value
+						if Game.__check_loop.is_looping(marble_chain, board):
+							value /= 10
 
 						if value is not None:
 							if value > best_value:
@@ -61,8 +66,8 @@ class Game():
 							break
 			return -best_value, best_marbles, best_direction
 
-		self.__return = depth_negamax(player, board)
-		print(self.__return)
+		self.__return = depth_negamax(player, self.__board)
+		Game.__check_loop.append(self.__return[1], self.__board)
 
 	@timeit
 	def get_movement(self):
@@ -73,7 +78,6 @@ class Game():
 		time_start = time.time()
 		while (((time.time() - time_start) < GAME_TIMEOUT) and game_thread.is_alive()):
 			True
-		print(game_thread.is_alive())
 		self.__running = False
 		game_thread.join()
 
