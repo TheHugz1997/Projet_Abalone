@@ -132,7 +132,17 @@ class Strategy:
 		dl_back, dc_back = directions[opposite[direction]]
 
 		return not self.is_on_board(l + dl_back, c + dc_back)
-	
+
+	def marble_counter(self):
+		number_enemy_marbles = 0
+		# Get the index of each line and the lines of the board
+		for index_line, line in enumerate(self._board):
+				# Get the index of each column and the composition of each line
+				for index_column, marble in enumerate(line):
+					if marble == COLORS[self._current - 1]:
+						number_enemy_marbles += 1
+		return number_enemy_marbles
+
 	def future_marble_out(self, l, c):
 		"""
 			Check if one of our marble can be ejected in the future move
@@ -245,6 +255,8 @@ class Strategy:
 		# Check if there's no marble of mine behind of the opposite chain
 		if len_marble > len_opposite_marble and len_opposite_marble > 0:
 			if not self.is_on_board(l + dl, c + dc):
+				if self.marble_counter() == 9:
+					return 1000
 				return 100
 			elif self.is_free(l + dl, c + dc):
 				return 100 - (self.get_board_priority(l + dl, c + dc) * 10)

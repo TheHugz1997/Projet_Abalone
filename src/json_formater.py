@@ -1,9 +1,17 @@
 import json
+from random import shuffle
 
 
 SUBSCRIBE_REQUEST = 'subscribe'
 MOVE_REQUEST = 'move'
-MOVE_MESSAGE = 'Fuck you Bitch'
+MOVE_MESSAGES = [
+	'I will beat you',
+	'You will never beat me',
+	'Behind you',
+	'MANC-RMA finale champions gros',
+	'A 10 is sufficient',
+	'Don\'t look the code'
+	]
 
 
 def json_decode(string):
@@ -25,6 +33,7 @@ def json_ping_answer():
 	return json.dumps(ping_ans, indent=4, separators=(',', ':'))
 
 def json_play_response(marbles, direction):
+	shuffle(MOVE_MESSAGES)
 	response, move_played = dict(), dict()
 
 	move_played['marbles'] = marbles
@@ -32,7 +41,7 @@ def json_play_response(marbles, direction):
 
 	response['response'] = MOVE_REQUEST
 	response['move'] = move_played
-	response['message'] = MOVE_MESSAGE
+	response['message'] = MOVE_MESSAGES[0]
 
 	return json.dumps(response, indent=4, separators=(',', ':'))
 
@@ -40,3 +49,5 @@ def json_give_up():
 	response = {'response': 'giveup'}
 
 	return json.dumps(response, indent=4, separators=(',', ':'))
+
+
