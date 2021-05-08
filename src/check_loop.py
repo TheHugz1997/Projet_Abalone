@@ -47,7 +47,7 @@ class CheckLoop:
 
 	def is_looping(self, move, board):
 		"""
-			Check if the game is looking
+			Check if the game is looping
 			Parameters:
 				move (StrategyConfiguration): Move to check
 				board (list): Board to check

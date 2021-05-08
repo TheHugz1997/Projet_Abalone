@@ -56,8 +56,8 @@ class Strategy:
 		self._color = COLORS[color]
 		self._board = board
 		self.__best_choice = None
+		self.__ennemy_marble = self.marble_counter()
 		self.__strategy_cfg = StrategyConfiguration()
-		global PREVIOUS
 
 	def is_free(self, l, c):
 		"""
@@ -195,39 +195,6 @@ class Strategy:
 		
 		return False
 
-	def previous_pos(self, identification, priority, marbles, direction):
-		# Called when priority is not none and check if the next move is not the same as it was two moves earlier
-		if PREVIOUS == {}:
-			return True
-		else:
-			try:
-				if "penultimate" in PREVIOUS[identification].keys():
-					if [priority, marbles, direction] == PREVIOUS[identification]["penultimate"]:
-						print("same move")
-						return False
-					else:
-						return True
-				else:
-					return True
-			except KeyError:
-				return True
-	
-	def fill_previous(self, identification, priority, marbles, direction):
-		# Called when the move is accepted and not the same as earlier
-		# Builds the dico previous
-		if PREVIOUS == {}:
-			PREVIOUS[identification] = {}
-			PREVIOUS[identification]["last"] = [priority, marbles, direction]
-		elif identification in PREVIOUS.keys():
-			if "last" in PREVIOUS[identification].keys():
-				PREVIOUS[identification]["penultimate"] = PREVIOUS[identification]["last"]
-				PREVIOUS[identification]["last"] = [priority, marbles, direction]
-			else:
-				PREVIOUS[identification]["last"] = [priority, marbles, direction]
-		else:
-			PREVIOUS[identification] = {}
-			PREVIOUS[identification]["last"] = [priority, marbles, direction]
-
 	def can_push(self, direction, l, c, marble_chain):
 		"""
 			Check if we can push opposite marbles
@@ -255,7 +222,7 @@ class Strategy:
 		# Check if there's no marble of mine behind of the opposite chain
 		if len_marble > len_opposite_marble and len_opposite_marble > 0:
 			if not self.is_on_board(l + dl, c + dc):
-				if self.marble_counter() == 9:
+				if self.__ennemy_marble == 9:
 					return 1000
 				return 100
 			elif self.is_free(l + dl, c + dc):
@@ -323,46 +290,16 @@ class Strategy:
 		
 		return board
 
-	def get_marbles(self, marble, l, c):
-		"""
-			Check all the move that a marble can do
-			Parameters:
-				marble (string): The current marble
-				l (int): The current board line
-				c (int): The current board column
-			Returns:
-				int, list, string: The priority, marble chain, direction
-		"""
-		for direction, coordinates in directions.items():
-			dl, dc = coordinates
-			priority = 0
-			# Check if the next coordinate is on the board and is not one of our marble
-			if self.is_on_board(l + dl, c + dc) and not self.is_my_marble(l + dl, c + dc):
-				# Takes marbles as much as possible that can follow the same direction
-				marble_chain = self.get_marbles_chain(l, c, direction)
-
-				if len(marble_chain) != 0:
-					# Check if we can push an opposite marble
-					priority += self.get_board_priority(l + dl, c + dc) * len(marble_chain)
-
-					for marble_to_move in marble_chain:
-						if self.future_marble_out(marble_to_move[0] + dl, marble_to_move[1] + dc):
-							priority -= 100
-						if self.can_be_ejected(*marble_to_move):
-							priority += 100
-						if self.is_move_away_edge(*marble_to_move, direction):
-							priority += 20
-
-					if self.is_opposite_marble(l + dl, c + dc):
-						push_priority = self.can_push(direction, l, c, marble_chain)
-						if push_priority is not None:
-							priority += push_priority
-						else:
-							priority = None
-					yield priority, marble_chain, direction
-		yield None, None, None
-
 	def check_marbles_priority(self, l, c, direction):
+		"""
+			Get the best marbles with priority
+			Parameters:
+				l (int): Line index
+				c (int): Column index
+				direction (string): The direction where the marbles go
+			Returns:
+				marbles, prioroty
+		"""
 		dl, dc = directions[direction]
 		priority = 0
 
@@ -374,13 +311,13 @@ class Strategy:
 			marbles = self.get_marbles_chain(l, c, direction)
 			if len(marbles) > 0:
 				priority += self.get_board_priority(l + dl, c + dc) * len(marbles)
-				
-				for marble_to_move in marbles:
-					# if self.future_marble_out(marble_to_move[0] + dl, marble_to_move[1] + dc):
-					# 	priority -= 150
-					if self.can_be_ejected(*marble_to_move):
+
+				for marble in marbles:
+					if self.future_marble_out(marble[0] + dl, marble[1] + dc):
+						priority -= 150
+					if self.can_be_ejected(*marble):
 						priority += 150
-					if self.is_move_away_edge(*marble_to_move, direction):
+					if self.is_move_away_edge(*marble, direction):
 						priority += 20
 
 				if self.is_opposite_marble(l + dl, c + dc):

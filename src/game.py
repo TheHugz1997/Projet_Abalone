@@ -28,6 +28,12 @@ class Game():
 		self.__return = [None, None, None]
 
 	def cache_negamax(self, player, board):
+		"""
+			Thread function where the negamax is running
+			Parameters:
+				player (int): Current player
+				board (list): The current board
+		"""
 		def depth_negamax(player, board, depth=2, priority=None, marbles=None, direction=None, alpha=float('-inf'), beta=float('inf')):
 			if depth == 0:
 				if priority is not None:
@@ -49,9 +55,10 @@ class Game():
 						if c_priority is None or marble_chain is None:
 							continue
 
+						# Get the board after move
 						future_board = strategy.get_future_board(marble_chain, c_direction)
-						value, marbles, direction = depth_negamax(
-							0 if player else 1, future_board, depth-1, -c_priority, marble_chain, c_direction, -beta, -alpha)
+
+						value, marbles, direction = depth_negamax(0 if player else 1, future_board, depth-1, -c_priority, marble_chain, c_direction, -beta, -alpha)
 						value = c_priority - value
 						if Game.__check_loop.is_looping(marble_chain, board):
 							value /= 10
@@ -71,13 +78,24 @@ class Game():
 
 	@timeit
 	def get_movement(self):
+		"""
+			Get the current movement to do
+			Returns
+				marbles, direction
+		"""
 		self.__running = True
+
+		# Create and start the game thread
 		game_thread = Thread(target=self.cache_negamax, args=(self.__player, self.__board))
 		game_thread.start()
+
+		# Start the timer
 		time_start = time.time()
 		while (((time.time() - time_start) < GAME_TIMEOUT) and game_thread.is_alive()):
 			True
 		self.__running = False
+
+		# Wait the thread
 		game_thread.join()
 
 		str_cfg = StrategyConfiguration(*self.__return)

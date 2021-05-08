@@ -15,9 +15,23 @@ MOVE_MESSAGES = [
 
 
 def json_decode(string):
+	"""
+		Decode string to json format
+		Returns:
+			Json data
+	"""
 	return json.loads(string)
 
 def json_subscribe(matricules, port, name):
+	"""
+		Get the subscribe json body
+		Parameters:
+			matricules (list): The matricules
+			port (int): Port used by the TCP client
+			name (string): The player name
+		Returns:
+			Json data
+	"""
 	subscribe = {}
 
 	subscribe['request'] = SUBSCRIBE_REQUEST
@@ -28,11 +42,24 @@ def json_subscribe(matricules, port, name):
 	return json.dumps(subscribe, indent=4, separators=(',', ':'))
 
 def json_ping_answer():
+	"""
+		Get the ping reponse body
+		Returns:
+			Json data
+	"""
 	ping_ans = {"response": "pong"}
 
 	return json.dumps(ping_ans, indent=4, separators=(',', ':'))
 
 def json_play_response(marbles, direction):
+	"""
+		Get the play response body
+		Parameters:
+			marbles (list): The marbles to move
+			directin (string): Direction to go
+		Returns:
+			Json data
+	"""
 	shuffle(MOVE_MESSAGES)
 	response, move_played = dict(), dict()
 
@@ -46,6 +73,11 @@ def json_play_response(marbles, direction):
 	return json.dumps(response, indent=4, separators=(',', ':'))
 
 def json_give_up():
+	"""
+		Get the give up body
+		Returns:
+			Json data
+	"""
 	response = {'response': 'giveup'}
 
 	return json.dumps(response, indent=4, separators=(',', ':'))

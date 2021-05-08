@@ -79,7 +79,6 @@ class Abalone:
 
 		marbles, direction = c_game.get_movement()
 		print(marbles, ':', direction)
-		print("here")
 		# If no movement is found, we give-up
 		if marbles is not None and direction is not None:
 			msg = json_play_response(marbles, direction)
@@ -92,17 +91,23 @@ class Abalone:
 if __name__ == '__main__':
 	logging.basicConfig(level=logging.DEBUG)
 
-	if len(sys.argv) > 2:
-		for arg in sys.argv[1:]:
-			name = "{}{}".format(ABALONE_NAME, arg)
-			abalone = Abalone(name, int(arg))
+	try:
+		if len(sys.argv) > 2:
+			for arg in sys.argv[1:]:
+				name = "{}{}".format(ABALONE_NAME, arg)
+				abalone = Abalone(name, int(arg))
+				abalone.subscribe_server()
+				Thread(target=abalone.run, daemon=True).start()
+			while True:
+				pass
+		else:
+			port = int(sys.argv[1]) if len(sys.argv) == 2 else None
+			abalone = Abalone(ABALONE_NAME, port)
 			abalone.subscribe_server()
-			Thread(target=abalone.run, daemon=True).start()
-		while True:
-			pass
-	else:
-		port = int(sys.argv[1]) if len(sys.argv) == 2 else None
-		abalone = Abalone(ABALONE_NAME, port)
-		abalone.subscribe_server()
-		while True:
-			abalone.run()
+			while True:
+				try:
+					abalone.run()
+				except KeyboardInterrupt:
+					exit()
+	except KeyboardInterrupt:
+		exit()
