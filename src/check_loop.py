@@ -6,6 +6,10 @@ MEMORY_SIZE = 10  # Change the memory size of the lists
 
 
 class CheckLoop:
+	"""
+		Saved the move/board and check is the game is looping
+	"""
+
 	def __init__(self):
 		self.__pointer = 0
 		self.__move_mem = [None] * MEMORY_SIZE

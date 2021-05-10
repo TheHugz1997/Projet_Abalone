@@ -17,6 +17,14 @@ board_weight = [
 
 
 class StrategyConfiguration:
+	"""
+		Use to save a move configuration
+		Parameters:
+			priority (int): The move priority
+			marbles (list): All the marbles to move
+			direction (string): Direction to go
+	"""
+
 	def __init__(self, priority=0, marbles=[], direction=None):
 		self.__priority = priority
 		self.__marbles = marbles
@@ -50,12 +58,17 @@ class StrategyConfiguration:
 		return (self.__marbles == other.marbles) and (self.__direction == other.direction)
 
 class Strategy:
-	def __init__(self, color, board):
-		# self._lives = lives
-		self._current = color
-		self._color = COLORS[color]
+	"""
+		Use to compute the best move to do depending of the board state.
+		Parameters:
+			player (int): The current player (0: Black, 1: White)
+			board (list): The board state
+	"""
+
+	def __init__(self, player, board):
+		self._player = player
+		self._color = COLORS[player]
 		self._board = board
-		self.__best_choice = None
 		self.__ennemy_marble = self.marble_counter()
 		self.__strategy_cfg = StrategyConfiguration()
 
@@ -97,7 +110,7 @@ class Strategy:
 				bool: True if the marble is one of the opposite, False otherwise
 		"""
 		try:
-			return self._board[l][c] == COLORS[self._current - 1]
+			return self._board[l][c] == COLORS[self._player - 1]
 		except IndexError:
 			return False
 
@@ -139,7 +152,7 @@ class Strategy:
 		for index_line, line in enumerate(self._board):
 				# Get the index of each column and the composition of each line
 				for index_column, marble in enumerate(line):
-					if marble == COLORS[self._current - 1]:
+					if marble == COLORS[self._player - 1]:
 						number_enemy_marbles += 1
 		return number_enemy_marbles
 
@@ -329,27 +342,3 @@ class Strategy:
 			return list(marbles), priority
 		return [], None
 
-	def get_strategy(self):
-		"""
-			Get the current marbles to move
-			Returns:
-				StrategyConfiguration: The current move to do
-		"""
-		# Get the index of each line and the lines of the board
-		for index_line, line in enumerate(self._board):
-			# Get the index of each column and the composition of each line
-			for index_column, marble in enumerate(line):
-				# Get the AI's first marble depend of the color
-				if marble == self._color:
-					# Get the current priority, marble to move and the direction to go
-					for priority, marbles, direction in self.get_marbles(marble, index_line, index_column):
-						if priority is not None:
-							if priority > self.__strategy_cfg.priority:
-								if self.previous_pos(marble, priority, marbles, direction):
-									self.__strategy_cfg.priority = priority
-									self.__strategy_cfg.marbles = marbles
-									self.__strategy_cfg.direction = direction
-		self.fill_previous(self._color, self.__strategy_cfg.priority, self.__strategy_cfg.marbles, self.__strategy_cfg.direction)
-		print("here's previous : {}".format(PREVIOUS))
-		print(self.get_future_board(self.__strategy_cfg.marbles, self.__strategy_cfg.direction))
-		return self.__strategy_cfg

@@ -1,6 +1,6 @@
 import socket
 import logging
-from threading import Thread
+
 
 SERVER_HOST = '127.0.0.1'  # Server IP address
 HOST_PORT = 3000  # Port listened by the server
@@ -9,6 +9,12 @@ DEFAULT_PORT = 4704  # Default port to use
 
 
 class ClientTCP:
+	"""
+		Make a TCP communication between the AI and the server
+		Parameters:
+			port (int): Port to use
+	"""
+
 	def __init__(self, port=DEFAULT_PORT):
 		# Create the socket instance
 		self.__port = port if port is not None else DEFAULT_PORT
@@ -48,7 +54,7 @@ class ClientTCP:
 			logging.debug("Data sent !")
 		except Exception as e:
 			logging.warning("Error sending data !")
-			print(e)
+			logging.warning(e)
 
 
 	def __receive(self, client):

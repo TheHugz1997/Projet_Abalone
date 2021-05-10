@@ -1,27 +1,38 @@
-from collections import defaultdict
-from strategy import Strategy, StrategyConfiguration
-from abalone_utility import *
-from threading import Thread
-from check_loop import CheckLoop
 import logging
 import time
 import random
+from threading import Thread
+from strategy import Strategy, StrategyConfiguration
+from abalone_utility import *
+from check_loop import CheckLoop
 
 
 GAME_TIMEOUT = 2.5  # Seconds
 
 
 def timeit(func):
+	"""
+		Decorator use to print the function time
+	"""
 	def wrapper(*arg, **kwargs):
 		start = time.time()
 		res = func(*arg)
-		print(f'Time of the function : {time.time() - start}')
+		logging.debug(f'Time of the function : {time.time() - start}')
 		return res
 	return wrapper
 
 class Game():
+	"""
+		Get all the move and lauch the negamax algorithm
+		Parameters:
+			live (int): Bad moves that we can do
+			player (int): The current player (0: Black, 1: White)
+			board (list): The board state
+	"""
+
 	__check_loop = CheckLoop()
 	def __init__(self, lives, player, board):
+		self.__lives = lives
 		self.__board = board
 		self.__player = player
 		self.__running = False
@@ -100,5 +111,5 @@ class Game():
 
 		str_cfg = StrategyConfiguration(*self.__return)
 
-		print("priority : {}, marbles : {}, direction : {}".format(*self.__return))
+		logging.info("priority : {}, marbles : {}, direction : {}".format(*self.__return))
 		return str_cfg.marbles, str_cfg.direction

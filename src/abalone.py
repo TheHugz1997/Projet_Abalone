@@ -11,6 +11,13 @@ MATRICULES = ["195347", "195004"]
 
 
 class Abalone:
+	"""
+		Run the main code
+		Parameters:
+			name (string): The client name
+			port (int): Port TCP to use
+	"""
+
 	def __init__(self, name=ABALONE_NAME, port=None):
 		self.__name = name
 		self.__client = ClientTCP(port)
@@ -78,7 +85,8 @@ class Abalone:
 		c_game = Game(lives, state['current'], state['board'])
 
 		marbles, direction = c_game.get_movement()
-		print(marbles, ':', direction)
+		logging.debug(f"{marbles}:{direction}")
+
 		# If no movement is found, we give-up
 		if marbles is not None and direction is not None:
 			msg = json_play_response(marbles, direction)
@@ -89,7 +97,7 @@ class Abalone:
 
 
 if __name__ == '__main__':
-	logging.basicConfig(level=logging.DEBUG)
+	logging.basicConfig(level=logging.WARNING)
 
 	try:
 		if len(sys.argv) > 2:
@@ -105,9 +113,6 @@ if __name__ == '__main__':
 			abalone = Abalone(ABALONE_NAME, port)
 			abalone.subscribe_server()
 			while True:
-				try:
-					abalone.run()
-				except KeyboardInterrupt:
-					exit()
+				abalone.run()
 	except KeyboardInterrupt:
 		exit()
